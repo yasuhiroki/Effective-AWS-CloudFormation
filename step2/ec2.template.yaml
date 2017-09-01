@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  NamePrefix:
+    Type: String
+    Description: Name tag prefix
+    MinLength: 1
+    Default: myapp
+  InstanceType:
+    Type: String
+    Description: EC2 instance type
+    MinLength: 1
+    Default: t2.micro
+
+Resources:
+  MyInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: ami-4af5022c
+      Tags:
+        - Key: Name
+          Value: !Sub "${NamePrefix}-ec2"
+
