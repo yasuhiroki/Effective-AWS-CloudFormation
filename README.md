@@ -2,10 +2,7 @@ Step by Step で始める AWS CloudFormation を少しでも楽にメンテす�
 
 # 概要
 
-本記事では現時点[^1]で、私なりの CloudFormation を少しでも楽にメンテするためのノウハウを説明します。
-[^1]: 2017/08/30
-
-ただし、いきなり色々な機能をフル活用すると学習コストが高いので、Step by Step で少しずつメンテを楽にする手段を身に付けられるような構成を意識しています。
+本記事では私なりの CloudFormation を少しでも楽にメンテするノウハウを説明します。
 
 ## この記事で触れること
 
@@ -25,12 +22,12 @@ Step by Step で始める AWS CloudFormation を少しでも楽にメンテす�
 	- 「これから AWS を触るんです！」という方には色々と説明不足な点があると思いますがご了承下さい
 - [CloudFormation ヘルパースクリプト](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/cfn-helper-scripts-reference.html)
 	- `cfn-init` とか `cfn-signal` など
-	- 私には説明できる自信がないので省いています[^2]
+	- 私には説明できる自信がないので省いています[^1]
 - CloudFormationを操作する権限管理
   - CloudFormationの操作はしても良いけど、EC2やS3などには直接触ってほしくない場合のIAM設定方法
   - IAM設計が絡むと本記事では扱いきれないので触れません
 
-[^2]: ヘルパースクリプトはなるべく使わない方が良いと考えています。数年前ならともかく、今なら代替手段があるはずです。
+[^1]: ヘルパースクリプトはなるべく使わない方が良いと考えています。数年前ならともかく、今なら代替手段があるはずです。
 
 # Step1. CloudFormation Template を書こう
 
@@ -38,20 +35,36 @@ TBD
 
 ## Step1.1 Yamlで書こう
 
-TBD
+CloudFormationのTemplateファイルはYamlで書くことが出来ます。[^2] 書きましょう。Jsonを使うメリットはさしてありません。配列の最後に `,` を書いてしまってFormatエラーになる日々をわざわざ選ぶ必要はないのです。
+[^2]: [2016/09で公式にYamlがサポートされるようになりました](https://aws.amazon.com/jp/about-aws/whats-new/2016/09/aws-cloudformation-introduces-yaml-template-support-and-cross-stack-references/)
 
-### なぜYamlなのか（なぜJsonがダメなのか）
+### Yaml のメリットを活かそう
 
-TBD
+YamlはJsonと違ってコメントが書けます。
+プログラミングと同様、Templateを見ただけでは分からない情報を補完して「なぜその設定なのか」が分かるようにすると役に立つでしょう。
 
-### コメントを書こう
-
-TBD
+```yaml
+Resources:
+  # ユーザーがアップロードした画像の保存先S3
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      # ユーザーがアップロードした画像は公開される
+      # いずれ公開・非公開を制御できるようにする
+      AccessControl: PublicRead
+      LifecycleConfiguration:
+        Rules:
+          # 保持期間は1日
+          - Status: Enabled
+            ExpirationInDays: 1
+```
 
 ### ただし Yaml エイリアスは使えない
 
 Yamlにはアンカー・エイリアス機能があるのですが、CloudFormationのTemplateとしては使えません。
-例えば次のように `Subnet` の定義で共通部分（例えば VpcIdの部分）を使い回すようなYamlを書いても、CloudFormationでは使えません。
+例えば次のように `Subnet` の定義で共通部分（例えば VpcIdの部分）を使い回すようなYamlを書いても、CloudFormationでは使えません。  
+
+次のようにアンカーを使っても、
 
 ```yaml
 Resources:
@@ -75,14 +88,17 @@ Resources:
           Value: public-subnet-AZ2
 ```
 
-```bash
-# aws cloudformation validate-template 実行時にエラーとなる
+aws cloudformation validate-template 実行時にエラーとなります。
+
+```bash:
 An error occurred (ValidationError) when calling the ValidateTemplate operation: Template error: YAML aliases are not allowed in CloudFormation templates
 ```
 
-使いたい場合は Ruby などで正規化されたYamlに変換する必要があります。
+アンカー・エイリアスを使いたい場合は Ruby などで変換する必要があります。
 
 ### Yamlの短縮形構文を使おう
+
+TBD
 
 ### 番外編: Templateの共通化をすべきか
 
@@ -104,7 +120,7 @@ $ ruby -ryaml -ractive_support -e 'puts YAML.dump( YAML.load_file(ARGV[0]).deep_
 
 この例の場合、Rubyを経由したことによる副次的効果としてYamlのアンカー・エイリアスを使うことができます。
 しかし一方で、後述する Yaml の短縮形構文は使えません。短縮形構文はYamlのタグ機能[^3]を使っているのですが、このタグはAWS独自のタグなので、Rubyに読み込ませた時点で無視され、無くなってしまうのです。  
-[^3]: http://yaml.org/spec/1.2/spec.html#id2761292 ちなみにリンクは Yaml 1.2 ですが、Rubyが依存しているYamlは 1.1 です
+[^3]: http://yaml.org/spec/1.1/current.html#id858600
 
 ここからは個人の趣味の話になると思いますが、私は CloudFormation をプログラマブルにメンテするのは、かえって効率が悪いと考えています。[^4]
 理由は、まず１つにCloudFormationを触るエンジニアがプログラマーとは限らない、というのものです。
@@ -195,13 +211,14 @@ Yamlの短縮形構文でも述べたように、 CloudFormationには固有の�
 - `AWS::AccountId`
   - AWSアカウントIdを取得する
 - `AWS::NotificationARNs`
-  - TBD
+  - Stackの通知を受け取るSNSのArn
 - `AWS::NoValue`
-  - TBD
+  - `Fn::If` と組み合わせて使う
+  - Productionの時はこのパラメータは設定しない、とできる
 - `AWS::Region`
-  - TBD
+  - Stackを作成したRegionの文字列
 - `AWS::StackName`
-  - TBD
+  - その名の通りStack名
 
 こちらも便利なものばかりです。例えば `AWS::AccountId` や `AWS::Region` などは、IAM のリソースを作る際には良く使うでしょう。
 
@@ -364,6 +381,8 @@ TBD
 
 - [AWSマイスターシリーズ AWS CloudFormation](https://www.slideshare.net/AmazonWebServicesJapan/aws-aws-cloudformation)
   - CloudFormationの仕組みはこれを見ればだいたい分かる
+- [AWS Black Belt Online Seminar 2016 AWS CloudFormation](https://www.slideshare.net/AmazonWebServicesJapan/aws-black-belt-online-seminar-2016-aws-cloudformation)
+  - 2016/12に公開された資料。一番新しいノウハウが詰まった公式スライド。
 - [AWS CloudFormation のベストプラクティス](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/best-practices.html)
   - スライド版 [AWS CloudFormation Best Practices](https://www.slideshare.net/AmazonWebServices/aws-cloudformation-best-practices)
   - CloudFormationを運用する際のベストプラクティス
