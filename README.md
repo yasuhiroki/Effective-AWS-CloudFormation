@@ -211,7 +211,7 @@ Yamlの短縮形構文でも述べたように、 CloudFormationには固有の�
 - `AWS::AccountId`
   - AWSアカウントIdを取得する
 - `AWS::NotificationARNs`
-  - Stackの通知を受け取るSNSのArn
+  - Stackの通知を受け取るArn
 - `AWS::NoValue`
   - `Fn::If` と組み合わせて使う
   - Productionの時はこのパラメータは設定しない、とできる
@@ -299,15 +299,101 @@ TBD
 
 ## Step1.5 Templateファイルをテストしよう
 
-TBD
+私は、CloudFormationは学習コストが高い仕組みだと思います。独自の記法・仕組みが多く、それらを把握するにはドキュメントを読みながら試すしかありません。しかし実際にTemplateファイルを書いて、試して、失敗したStackを削除して、という作業を繰り返すのは手間ですし、精神的にも辛い作業です。
+特に単純なケアレスミスは、Stackを作る前に気付きたいものです。
+「何で失敗したんだろう」
+「あ、タイプミスか...」
+そんな虚無感を味合う前に、次のようなツールを使ってTemplateをテストしましょう。
 
-### aws cloudformation validation を実行しよう
+### aws cloudformation validate-template を実行しよう
 
-TBD
+`aws-cli` をインストールしていれば使えるコマンドです。
+`aws-cli` はAWS公式のツールですので、使わない手はありません。後述するStackの管理にも使います。
+
+使い方は簡単です。
+
+例えばここに、`Type` を `Typo` に typo したTemplateファイルを用意しました。
+
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  S3Bucket:
+    Typo: 'AWS::S3::Bucket'
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: 1
+```
+
+この Template に CLI で vaildation を実行すると「`Type` が必須だよ！」と怒ってくれます。
+
+```bash
+$ aws cloudformation validate-template --template-body file://./step5/invalid.template.yaml
+
+An error occurred (ValidationError) when calling the ValidateTemplate operation: Template format error: [/Resources/S3Bucket] Every Resources object must contain a Type member.
+```
+
+実はこの validation は Stack を作成する時にも事前に自動で実行されるので、わざわざ実行しなくても良いと思うかもしれません。
+しかし、コマンドを実行してすぐにエラーを教えてくれるのと、Stack名やパラメータを入力してからよし実行だ、としてからエラーとなるのとでは、徒労感が全く違うでしょう。
+
+ただし、このツールには大きな欠点があります。
+次のTemplateファイルはミスがあり、Stackが作成できません。
+
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      LifecycleConfiguration:
+        Rule:
+          - Status: Enabled
+            ExpirationInDays: 1
+```
+
+しかし validaion は成功してしまいます。
+
+```bash
+$ aws cloudformation validate-template --template-body file://./step5/invalid.template.yaml
+{
+    "Parameters": []
+}
+```
+
+`aws cloudformation validate-template` は力不足で CloudFormation Template の Format が正しいかどうかの検証はしてくれるのですが、必須ではないパラメータやその値が正しいかどうかはチェックしてくれないのです。
+何がミスなのかは次の章で説明しましょう。
 
 ### cfn-lint を実行しよう
 
-TBD
+[cfn-lint](https://github.com/martysweet/cfn-lint) という便利なツールがあります。
+Node.jsで動いていますので `npm install -g cfn-lint` などとしてインストールしましょう。
+
+このツールを使って、上記で例示したミスを含むTemplateの検証をしてみます。
+
+```bash
+$ cfn-lint validate step5/invalid.template.yaml
+0 infos
+0 warn
+2 crit
+Resource: Resources > S3Bucket > Properties > LifecycleConfiguration
+Message: Required property Rules missing for type AWS::S3::Bucket.LifecycleConfiguration
+Documentation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig.html, http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-lifecycleconfig
+
+Resource: Resources > S3Bucket > Properties > LifecycleConfiguration
+Message: Rule is not a valid property of AWS::S3::Bucket.LifecycleConfiguration
+Documentation: http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig.html, http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-lifecycleconfig
+
+Template invalid!
+```
+
+何やらメッセージが出てきました。
+ミスの内容は `Rules` とすべきところを `Rule` と書いていた、なのですが、 `cfn-lint` は見事にそれを `Rules` が無い・`Rule` なんてプロパティは存在しない、と指摘してくれています。ありがたいですね。
+
+さらに `cfn-lint` はおまけで `cfn-lint docs` というコマンドを用意しています。
+例えば `cfn-lint docs AWS::S3::Bucket.LifecycleConfiguration` と実行すると、ブラウザでS3 Bucket LifecycleConfiguration のCloudFormationに関するドキュメントを開いてくれます。いちいち検索しなくて済むので便利です。
 
 # Step2 CloudFormation Stack を管理しよう
 
@@ -341,7 +427,7 @@ TBD
 
 TBD
 
-## Step2.4 CI/CDを回そう
+## Step2.4 CI/CDで自動化しよう
 
 TBD
 
