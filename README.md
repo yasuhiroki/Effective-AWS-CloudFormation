@@ -142,6 +142,11 @@ $ ruby -ryaml -e 'raise "should be allowed ci environment" unless YAML.load_file
 [^4]: 実際にCloudFormationの共通化をしたことがあるのですが、どこまでを共通化するか、共通化の仕組み・仕様はどんなか、共通化よるデグレなどがないか確認する方法、それらのドキュメント整備など作業が多く、費用対効果が適切ではないと感じました。ただ、共通化の仕組み自体は既存のツールを組み合わせればそれほどコストが掛からないと思うので、いずれ私の意見は変わる可能性があります。
 [^5]: 移行前後のTemplateで diff を取る方が確実ですが
 
+ちなみに、Templateの中でStackを作成することもできます。[^6]
+Stackのネストです。作成するリソースの共通化として検討できると思いますが、私はStackの管理が難しくなるような気がして使っていません。特に、複数の親Stackから使われるTemplateファイルの管理が複雑になりそうです。
+
+[^6]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/quickref-cloudformation.html
+
 ## Step1.2 CloudFormation Designer を使おう
 
 TBD
