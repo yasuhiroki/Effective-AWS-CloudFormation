@@ -206,7 +206,7 @@ Yamlの短縮形構文でも述べたように、 CloudFormationには固有の�
 どれも便利な関数です。特に `Ref` は使わずにいる方が難しい関数でしょう。
 また、`!Sub` は比較的新しい関数[^6]なので古い記事では見つからないかもしれません。しかし、かなり便利な関数です。ぜひ活用しましょう。
 
-[^6]: 2016/09に追加された関数です TODO:Link
+[^6]: 2016/09に追加された関数です。参考) https://aws.amazon.com/jp/blogs/aws/aws-cloudformation-update-yaml-cross-stack-references-simplified-substitution/
 
 #### 疑似パラメータ
 
@@ -508,3 +508,4 @@ TBD
 - [AWS CloudFormation のベストプラクティス](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/best-practices.html)
   - スライド版 [AWS CloudFormation Best Practices](https://www.slideshare.net/AmazonWebServices/aws-cloudformation-best-practices)
   - CloudFormationを運用する際のベストプラクティス
+- [CloudFormationのリリース履歴](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/ReleaseHistory.html)
