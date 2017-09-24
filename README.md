@@ -433,7 +433,14 @@ Template invalid!
 
 # Step2 CloudFormation Stack を管理しよう
 
-TBD
+Step1 では CloudFormation Template の書き方について触れました。
+ここからは Template を使って CloudFormation Stack を作成・更新・運用していくための Tips となります。
+
+Stack の管理は、次の点さえ気をつけていれば難しくはありません。
+
+- パラメーターの指定ミスに注意する
+- Stackの依存関係に注意する
+- Stackを更新した時のリソース置き換えに注意する
 
 ## Step2.1 AWS CLI でスタックの管理をしよう
 
@@ -484,6 +491,11 @@ TBD
 TBD
 
 # Step3 CloudFormation Template の再利用性を意識しよう
+
+Step2 では CloudFormation Stack の作成・更新とCI/CDについて触れました。
+ここまでくれば、CloudFormation を自由に使いこなし、気軽にメンテできる状態が整ったと言えるでしょう。
+
+しかし、運用しやすい Stack を設計するとなるとまだまだ課題が残ります。
 
 TBD
 
