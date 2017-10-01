@@ -527,7 +527,7 @@ $ aws cloudformation create-stack --generate-cli-skeleton
 以下略
 ```
 
-このキーが、それぞれ `awscli` の1つ1つに紐付いています。
+これらのキーが、それぞれ `awscli` のオプションの1つ1つに紐付いています。
 `StackName` は `--stack-name` に `TemplateBody` は `--template-body` に、といった具合です。
 そして `--generate-cli-skeleton` と対をなす `--cli-input-json` を使うと、オプションを指定する代わりに json の値を読み込ませることができます。
 
