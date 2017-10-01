@@ -446,13 +446,102 @@ Stack の管理は、次の点さえ気をつけていれば難しくはあり�
 
 TBD
 
+ここでは `awscli` に絞って解説します。[^1]
+CloudFormationのStack管理用ツールはいくつかありますので、慣れてきたら触ってみると良いでしょう。[^1]
+
+- [stacker](https://github.com/remind101/stacker)
+
+[^1]: 執筆時の `awscli` の version は `aws-cli/1.11.162` です
+[^1]: 私自身は `awscli` で間に合っているのであまり深追いしていません。ですが、将来的には意見が変わっているかもしれません
+
 ### 最初はWebコンソールで流れをつかもう
 
 TBD
 
 ### CLIで再現性の高い作業ができるようになろう
 
-TBD
+CloudFormationの流れを掴めたら次は CLI を使っていきましょう。
+言わずもがなですが、Webページでの作業は反復作業に向いていません。かといって自前でプログラムを作るのは費用対効果として見合わない場合もあるでしょう。[^1]
+そこで `awscli` です。すでにご存知かもしれませんが `awscli` はAWSの各種サービス用APIをラップしてCLIツールに仕上げたもので、AWSのWebコンソールで行っていることは、ほぼ全て `awscli` で代替可能です。中にはWebコンソールでは処理できないものすらあるので、AWSを運用するなら必須と言っても良いツールでしょう。
+
+[^1]: ちょっとしたツールのつもりでも継続的なメンテと拡張性を...と考えると、それなりに工数がかかるものです
+
+`awscli` のインストール方法は割愛します。[^1]
+`aws cloudformation help` を実行すると使用できるコマンドが分かります。執筆時時点では 44 のコマンドが使えるようです。
+いきなり44つ全てのコマンドを把握して使いこなすのは時間がかかるので、私がよく使用するコマンドをリストアップしておきます。
+
+[^1]: awscliのインストール方法は http://docs.aws.amazon.com/ja_jp/cli/latest/userguide/installing.html を参考
+
+- create-stack
+  - stack を作成する
+- wait stack-create-complete
+  - stack の作成が完了するまで待つ
+- create-change-set
+  - change-set を作成する
+  - 詳しくは後述します
+- wait change-set-create-complete
+  - change-set の作成が完了するまで待つ
+- execute-change-set
+  - change-set を適用する
+- wait stack-update-complete
+  - change-set の適用 = stack の更新が完了するまで待つ
+- delete-stack
+  - stack を削除する
+- wait stack-delete-complete
+  - stack の削除が完了するまで待つ
+
+### 番外編: --generate-cli-skeleton を活用しよう
+
+`awscli` には、私の知る限り全てのコマンドで `--generate-cli-skeleton` というオプションが使えます。
+例えば `aws cloudformation create-stack --generate-cli-skeleton` を実行すると、次のような出力になります。
+
+```bash
+# 出力が長いので省略しています
+$ aws cloudformation create-stack --generate-cli-skeleton
+{
+  "StackName": "",
+  "TemplateBody": "",
+  "TemplateURL": "",
+  "Parameters": [
+  {
+    "ParameterKey": "",
+    "ParameterValue": "",
+    "UsePreviousValue": true
+  }
+  ],
+  "DisableRollback": true,
+以下略
+```
+
+このキーが、それぞれ `awscli` の1つ1つに紐付いています。
+`StackName` は `--stack-name` に `TemplateBody` は `--template-body` に、といった具合です。
+そして `--generate-cli-skeleton` と対をなす `--cli-input-json` を使うと、オプションを指定する代わりに json の値を読み込ませることができます。
+
+例えば次のような json ファイルを用意して、
+
+```json
+{
+  "StackName": "SampleStack",
+  "TemplateBody": "file://sample.template",
+  "Parameters": [{
+    "ParameterKey": "Param",
+    "ParameterValue": "foo"
+  }],
+  "Tags": [{
+    "Key": "Env",
+    "Value": "test"
+  }]
+}
+```
+
+次のようなコマンドを実行すると、
+
+```bash
+$ aws cloudformation create-stack --cli-input-json sample.json
+```
+
+必要なオプションを省略して stack を作成することができ、効率的に作業することができます。
+特にCloudFormationでは `Parameters` の値を変えて構築することが多いのですが、パラメータをオプションで1つずつ指定するのは面倒なので、このようにファイルで管理する方が良いでしょう。
 
 ## Step2.2 Change Sets を使って更新前の確認をしよう
 
