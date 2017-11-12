@@ -444,15 +444,15 @@ Stack の管理は、次の点さえ気をつけていれば難しくはあり�
 
 ## Step2.1 AWS CLI でスタックの管理をしよう
 
-TBD
+CloudFormation Stack の作成・更新・削除をする方法はいくつか方法があります。
+
+1. AWS Web コンソール画面で作業する
+1. `awscli` を使ってCLIで作業する
+1. 外部サービスを利用する
 
 ここでは `awscli` に絞って解説します。[^1]
-CloudFormationのStack管理用ツールはいくつかありますので、慣れてきたら触ってみると良いでしょう。[^1]
-
-- [stacker](https://github.com/remind101/stacker)
 
 [^1]: 執筆時の `awscli` の version は `aws-cli/1.11.162` です
-[^1]: 私自身は `awscli` で間に合っているのであまり深追いしていません。ですが、将来的には意見が変わっているかもしれません
 
 ### 最初はWebコンソールで流れをつかもう
 
