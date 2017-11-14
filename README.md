@@ -559,7 +559,40 @@ $ aws cloudformation create-stack --cli-input-json sample.json
 
 ## Step2.2 Change Sets を使って更新前の確認をしよう
 
-TBD
+作った CloudFormation Stack は更新することができます。
+Stack作成時に使った Template
+CloudFormation の Stack 更新は Change Sets[^1] という仕組みを使います。
+もはや、Change Sets を使わずにStackの更新をしようなんて今では考えられません。[^1]
+
+[^1]: 日本語では変更セット、と表現されています
+[^1]: この仕組みが入る前まで Stack の更新の前にどうやって確認していたか、もはや記憶にありません
+
+### Change Sets を知ろう
+
+Stackを更新したい時、最も気になるのは「更新して大丈夫なのか」という不安です。ひょっとすると、ちょっとした変更のつもりがEC2の再構築が実行されてしまいアラートが飛ぶ、想定外のリソースが削除されてしまってデータが飛ぶ、といった経験をしたことがあるせいかもしれません。
+こうした不安を払拭するには、この Stack 更新 で何がどうなるのかを知る必要があります。
+そして、そのための仕組みが Change Sets です。
+Change Sets は、Stack 更新によって使用する Template ファイル
+
+では、Change Sets の使い方を見ていきましょう。
+
+### Change Sets を使おう
+
+Change Sets の基本的な使い方の流れは次の通りです。
+
+1. Change Sets を作る
+1. 作った Change Sets の中身を確認する
+1. Change Sets を実行する
+1. Change Sets を削除する
+
+Webコンソール上で行う方法は [AWS 公式ブログ](https://aws.amazon.com/jp/blogs/news/new-change-sets-for-aws-cloudformation/) で説明されているのでそちらを見てください。
+ここでは aws-cli での手順を見てみましょう。
+
+#### Change Sets を作る
+
+#### 作った Change Sets の中身を確認する
+
+#### Change Sets を実行する & Change Sets を削除する
 
 ### 確認済みですぐに適用したい場合は deloy を使おう
 
