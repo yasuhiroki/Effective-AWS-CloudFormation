@@ -20,12 +20,28 @@
 	- 「これから AWS を触るんです！」という方には色々と説明不足な点があると思いますがご了承下さい
 - [CloudFormation ヘルパースクリプト](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/cfn-helper-scripts-reference.html)
 	- `cfn-init` とか `cfn-signal` など
-	- 私には説明できる自信がないので省いています[^1]
+	- 私にはベストプラクティスを説明できる自信がないので省いています[^1]
 - CloudFormationを操作する権限管理
-  - CloudFormationの操作はしても良いけど、EC2やS3などには直接触ってほしくない場合のIAM設定方法
+  - 例えば、CloudFormationの操作はしても良いけど、EC2やS3などには直接触ってほしくない場合のIAM設定方法
   - IAM設計が絡むと本記事では扱いきれないので触れません
 
 [^1]: ヘルパースクリプトはなるべく使わない方が良いと考えています。数年前ならともかく、今なら代替手段があるはずです。
+
+# 前章. CloudFormation を使う必要はあるのか
+
+この記事を読もうと思った方は、少なくとも AWS CloudFormation という仕組みの存在を知っていることでしょう。
+中には、CloudFormationの作成に試行錯誤中の方や、Stackの管理で困っている方、あるいは CloudFormation を止めたくてたまらないという方もいることでしょう。
+AWS CloudFormationは巨大なツールです。今日明日で使い方を身につけることは難しく、かりにマスターしたとしても、テンプレートファイルを読んだだけでリソース構成を全て理解できるなどという日は永遠に訪れないでしょう。
+それなのに、なぜ CloudFormation が必要なのでしょうか。
+一つの答えは、世の中にある別のツールが持っています。AWS ElasticBeanstalk を使ったことはあるでしょうか？ もしくは awsecscli を使って ECS クラスターを作ったことはあるでしょうか？ Serverless コマンドを触ったことは？ TBD は？
+これらのツールは内部でCloudFormationを活用しています。AWSのリソースを必要なだけ作成し・更新し・管理をまとめて行うには CloudFormation はうってつけです。
+
+では私たちが私たちのためにCloudFormationを利用する必要はあるのでしょうか。
+私の答えは「必要だ。だが昔ほどではない」です。
+例えば AWS Lambda の管理のために CloudFormation を使用する必要はないでしょう。ServerlessやApexなど便利なツールが揃っています。こちらを活用したほうが圧倒的に管理が簡単です。
+しかし VPC の構築やIAM設計やRDSの設定管理などは、CloudFormation を使った方が良いでしょう。どのSubnetとSubnetが接続できるのか、IAM Policyがどのような内容になっているのか、RDSの設定を何にしているのか、といった情報を知りたくなる度にWebコンソール画面で探すよりも、たった一つのCloudFormation Stackを確認すれば済む、という文化の方が効率的なのは明らかです。
+
+あらゆるプログラミング言語や開発ツールがそうであるように、CloudFormationを使うタイミングもまた適材適所となるのです。
 
 # Step1. CloudFormation Template を書こう
 
