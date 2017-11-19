@@ -1,5 +1,3 @@
-Step by Step で始める AWS CloudFormation を少しでも楽にメンテする方法
-
 # 概要
 
 本記事では私なりの CloudFormation を少しでも楽にメンテするノウハウを説明します。
@@ -590,9 +588,52 @@ Webコンソール上で行う方法は [AWS 公式ブログ](https://aws.amazon
 
 #### Change Sets を作る
 
+Change Sets を作るコマンドは次のようなものです。
+
+```bash
+change_set_name="ChangeSet名" # ex) my-stack-20171111
+template_file="Templateファイルパス"
+input_json="Parameterを記述したjsonファイルパス"
+
+aws cloudformation create-change-set \
+  --change-set-name "${change_set_name}" \
+  --template-body "file://${template_file}" \
+  --cli-input-json "file://${input_json}" # input_json に stack名も書いているので --stack-name オプションは不要
+```
+
+このコマンドを実行するとすぐにレスポンスが返ってきます。
+awscli を使ったことのある方はご存知だと思いますが、awcli では操作が完了するまで待たないコマンドが幾つかあります。
+`create-change-set` もその１つで、ChangeSetsの作成を開始したことをレスポンスで返しますが、作成が完了したのかどうかは分かりません。
+
+そこで `wait` コマンドを使うことになります。
+
+```bash
+aws cloudformation wait change-set-create-complete \
+  --change-set-name "${change_set_name}" \
+  --stack-name "${stack_name}"
+```
+
+ただし、このままだともし Change Sets の作成に失敗した時に「なぜ失敗したのか」が分かりません。
+そこで `wait` が失敗した時に Change Sets の詳細を取得するようにしましょう。
+
+```bash
+aws cloudformation wait change-set-create-complete \
+  --change-set-name "${change_set_name}" \
+  --stack-name "${stack_name}" || {
+    aws $(fn::aws_option) cloudformation describe-change-set \
+      --change-set-name "${change_set_name}" \
+      --stack-name "${stack_name}"
+    exit 1
+  }
+```
+
 #### 作った Change Sets の中身を確認する
 
+TBD
+
 #### Change Sets を実行する & Change Sets を削除する
+
+TBD
 
 ### 確認済みですぐに適用したい場合は deloy を使おう
 
