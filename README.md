@@ -714,3 +714,4 @@ TBD
   - スライド版 [AWS CloudFormation Best Practices](https://www.slideshare.net/AmazonWebServices/aws-cloudformation-best-practices)
   - CloudFormationを運用する際のベストプラクティス
 - [CloudFormationのリリース履歴](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/ReleaseHistory.html)
+- [AWS公式テンプレートサンプル集](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-sample-templates.html)
