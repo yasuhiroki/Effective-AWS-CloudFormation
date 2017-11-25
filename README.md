@@ -645,19 +645,77 @@ aws cloudformation wait change-set-create-complete \
 
 #### 作った Change Sets の中身を確認する
 
+Change Sets の中身を確認するコマンドは次のようなものです。
+
+```bash
+change_set_name="ChangeSet名" # ex) my-stack-20171111
+input_json="Parameterを記述したjsonファイルパス"
+
+aws cloudformation describe-change-set \
+  --change-set-name "${change_set_name}" \
+  --cli-input-json "file://${input_json}" # input_json に stack名も書いているので --stack-name オプションは不要
+```
+
 TBD
 
 #### Change Sets を実行する & Change Sets を削除する
 
-TBD
+Change Sets を実行する、すなわち Stack を更新するコマンドは次のようなものです。
+
+```bash
+change_set_name="ChangeSet名" # ex) my-stack-20171111
+input_json="Parameterを記述したjsonファイルパス"
+
+aws cloudformation execute-change-set \
+  --change-set-name "${change_set_name}" \
+  --cli-input-json "file://${input_json}" # input_json に stack名も書いているので --stack-name オプションは不要
+```
+
+Change Sets を作る時と同様に、このコマンドを実行するとすぐにレスポンスが返ってきます。
+これでは Change Sets が成功したのか失敗したのか分からないので、 `wait` コマンドを使いましょう。
+
+```bash
+aws cloudformation wait stack-update-complete --stack-name "${stack_name}"
+```
+
+更新が失敗したら、なぜ失敗したのか知りたいので、コマンドを繋げて更新時のイベントを確認しましょう。
+
+```bash
+aws cloudformation wait stack-update-complete --stack-name "${stack_name}" || {
+  aws $(fn::aws_option) cloudformation describe-stack-events --stack-name "${stack_name}"
+  exit 1
+}
+```
 
 ### 確認済みですぐに適用したい場合は deloy を使おう
 
-TBD
+何が更新されるかは分かっているのですぐに反映させたい、という時に使うことができるコマンドは2種類あります。
 
-### update-stack は使わないようにしよう
+- `aws cloudformation deploy`
+  - ChangeSetの作成・実行をまとめて行う
+- `aws cloudformation update-stack`
+  - ChangeSetを作成せずStackを直接更新する
 
-TBD
+どちらを使うべきか、という話になりますが、特に理由が無ければ `aws cloudformation deploy` を使う方が良いでしょう。
+
+```bash
+change_set_name="ChangeSet名" # ex) my-stack-20171111
+template_file="Templateファイルパス"
+input_json="Parameterを記述したjsonファイルパス"
+
+aws cloudformation deploy \
+  --template-file "${template_file}" \ # file:// は不要です
+  --cli-input-json "file://${input_json}" # input_json に stack名も書いているので --stack-name オプションは不要
+```
+
+`update-stack` は Change Sets の仕組みが生まれる前から存在するコマンドです。
+`deploy` の方が新しいから良い、というわけではありませんが、`deploy` は Change Sets の仕組みを使っているため、Change Sets の作成に成功するか、というチェックが必然的に行われることになります。これにより、テンプレートファイルのフォーマットエラーやパラメータの不整合など、Stackを更新する前に気付けるミスを先に検出することができます。 `update-stack` では、即座にStackの更新が始まってしまうため、些細なミスでも Stack Rollback が実行される可能性があります。
+
+では、`update-stack` はもう使われることのないコマンドなのかというと、そうではありません。
+Stack で管理されているリソースの更新は `deploy` を使う方が好ましいですが、Stack 自体の設定、例えば Stack Policy や Rollback Policy などは `update-stack` を使う必要があります。
+`update-stack` が受け持っていた多くの役割のうち、Stack内で管理するリソースの追加・更新・削除は `deploy` に委譲されたものとして考えると良いでしょう。
+
+TODO: 動作確認する
 
 ## Step2.3 通知を出そう
 
