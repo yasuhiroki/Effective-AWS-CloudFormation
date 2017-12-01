@@ -251,7 +251,7 @@ Yamlの短縮形構文でも述べたように、 CloudFormationには固有の�
 !Sub "${NamePrefix}-ec2"
 ```
 
-この関数は、`Prefix` というパラメータの値を代入した文字列を生成します。
+この関数は、`NamePrefix` というパラメータの値を代入した文字列を生成します。
 次のTemplateは、EC2を作るだけの単純なものです。
 
 ```yaml
