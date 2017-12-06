@@ -110,10 +110,6 @@ An error occurred (ValidationError) when calling the ValidateTemplate operation:
 
 アンカー・エイリアスを使いたい場合は Ruby などで変換する必要があります。
 
-### Yamlの短縮形構文を使おう
-
-TBD
-
 ### 番外編: Templateの共通化をすべきか
 
 CloudFormationのTemplateが増えると、似た部分が多く出てくるようになるかもしれません。
@@ -160,6 +156,10 @@ $ ruby -ryaml -e 'raise "should be allowed ci environment" unless YAML.load_file
 Stackのネストです。作成するリソースの共通化として検討できると思いますが、私はStackの管理が難しくなるような気がして使っていません。特に、複数の親Stackから使われるTemplateファイルの管理が複雑になりそうです。
 
 [^6]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/quickref-cloudformation.html
+
+### Yamlの短縮形構文を使おう
+
+TBD
 
 ## Step1.2 CloudFormation Designer を使おう
 
