@@ -163,7 +163,13 @@ TBD
 
 ## Step1.2 CloudFormation Designer を使おう
 
-TBD
+AWS CloudFormation Designer は 2015/10 から使えるようになった機能です。CloudFormation の Template の内容を理解するために、これほど便利な機能はありません。ぜひ活用しましょう。
+実際に、私はこの機能を愛用しています。CloudFormation Designer がリリースされるまで、このTemplateが作るAWSリソース群の設計図を出力できたら良いのに、と何度思ったことか。
+CloudFormation でできることは、言ってしまえば、AWS のリソースを作ることと、作ったリソースとリソースを関連付けることです。特に、リソースとリソースを関連付けていくと、Templateファイルは複雑化し、どのリソースがどこに依存しているのか追いかけるのが大変です。しかし CloudFormation Designer を使えば Template ファイル内で定義したリソースの関係がGUIで確認できるようになります。
+
+AWS CloudFormation Designer は既存のTemplateを理解するためだけでなく、新しいTemplateファイルを作成する時にも使えます。CloudFormationに慣れていない方は、いきなりテキストエディターを開かず、AWS CloudFormation Designer を使ってTemplateファイルを作ったほうが楽かもしれません。AWS CloudFormation Designer は補完機能も備えているので、それなりに快適な作業ができます。
+
+一方で AWS CloudFormation Designer を使うと、 `Metadata` という情報が Template ファイルに追加されてしまいます。これは、Designer上のリソースの表示位置を保持していて、ちょっと位置を変えただけで `Metadata` が変化するため、バージョン管理ツールを使っていると差分として出てきてしまいます。「この差分は何だっけ...ああ Metadata か」という無駄な作業はしたくありません。その為私は、Templateの構成理解のために Designer を使いTemplateファイルの作成や修正自体は手慣れたツールで行う、という方針にしています。
 
 ## Step1.3 CloudFormation の記法を活用しよう
 
