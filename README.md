@@ -21,6 +21,7 @@
 - [CloudFormation ヘルパースクリプト](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/cfn-helper-scripts-reference.html)
 	- `cfn-init` とか `cfn-signal` など
 	- 私にはベストプラクティスを説明できる自信がないので省いています[^1]
+- [CloudFormation StackSets](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html)
 - CloudFormationを操作する権限管理
   - 例えば、CloudFormationの操作はしても良いけど、EC2やS3などには直接触ってほしくない場合のIAM設定方法
   - IAM設計が絡むと本記事では扱いきれないので触れません
