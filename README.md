@@ -791,12 +791,13 @@ TBD
 
 # Step3 CloudFormation Template の再利用性を意識しよう
 
-Step2 では CloudFormation Stack の作成・更新とCI/CDについて触れました。
+Step1 では CloudFormatin Template の書き方、Step2 では CloudFormation Stack の作成・更新とCI/CDについて触れました。
 ここまでくれば、CloudFormation を自由に使いこなし、気軽にメンテできる状態が整ったと言えるでしょう。
+次は、どのような Template ファイルを書けばよいか、Template の設計についてとなります。ここが一番難しく、状況によって意見が変わる部分でもあるでしょう。
 
-しかし、運用しやすい Stack を設計するとなるとまだまだ課題が残ります。
-
-TBD
+Templateファイルの設計についての、私の考えは「プログラマーの思想をなるべく流用する」を基本としています。
+DRY とか テストしやすい実装をする方法とか、そういった思想です。
+以降、私なりのTemplateの設計について述べていきましょう。
 
 ## Step3.1 Conditions と AWS::NoValue を活用して制御しよう
 
