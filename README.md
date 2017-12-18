@@ -7,6 +7,7 @@
 - [AWS CloudFormation](https://aws.amazon.com/jp/cloudformation/) の (私なりの) 作成・メンテ手順
 	- Templateファイルをどうやって書くか
 	- スタックの作成、更新手順
+	- テスト・CI・動作確認の流れ
 - [AWS CloudFormation の組み込み関数](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html)
 - [AWS CloudFormation Change Sets](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html)
 - [AWS CloudFormation Cross Stack Reference](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/walkthrough-crossstackref.html)
@@ -797,17 +798,36 @@ Step1 では CloudFormatin Template の書き方、Step2 では CloudFormation S
 
 Templateファイルの設計についての、私の考えは「プログラマーの思想をなるべく流用する」を基本としています。
 DRY とか テストしやすい実装をする方法とか、そういった思想です。
-以降、私なりのTemplateの設計について述べていきましょう。
+以降、私なりのTemplateの設計について述べていきます。
 
-## Step3.1 Conditions と AWS::NoValue を活用して制御しよう
+## Step3.1 どの程度の再利用性を求めるか決める
+
+ゴールがなければ意識をしたところで底なし沼に落ちるだけなので、先に何かしら目標を立てましょう。
+私の場合は「最低でもここまではやる」と「やるとしてもこれ以上はしない」の上限と下限を定めるようにしています。
+例えば次のような感じです。
+
+### 最低でもここまではやる
+
+- `develep` `test` `production` と環境が違っても同じTemplateが使えること
+  - 環境ごとに使うTemplateが変わる -> 手順が変わる -> `production` への適用は実質ぶっつけ本番 -> 事故のもと
+- Stackの依存関係が一直線になること
+  - Stackの循環参照のような状態にならないこと
+
+### やるとしてもこれ以上はしない
+
+- Multi-Region 対応
+  - サービスの規模的に必要ならばするが、必要でなければしない
+  - 使いもしないRegionが使える・使えないを把握し続けるのは辛いので
+- アプリケーションが違っても適用できるTemplateにすること
+  - 頑張った結果、複雑なTemplateができるくらいなら分けてしまった方が良い
+  - 共通する記述をどうしてもまとめたければ、Templateをビルドして生成するようなプログラマブルな仕組みを整える
+    - 継承より委譲の考えと似ている
+
+## Step3.2 Conditions と AWS::NoValue を活用して制御しよう
 
 TBD
 
-## Step3.2 CloudFormation cross stack reference を活用しよう
-
-TBD
-
-### 番外編: Conditions を使うべきか Template を分けるべきか
+## Step3.3 CloudFormation cross stack reference を活用しよう
 
 TBD
 
