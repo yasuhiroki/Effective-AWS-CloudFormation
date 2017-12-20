@@ -1,0 +1,19 @@
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+      - production
+      - develop
+    Default: develop
+
+Conditions:
+  IsProduction: !Equals [ !Ref Environment, "production" ]
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Status: !If [ IsProduction, Enabled, Disabled ]
+            ExpirationInDays: 1
