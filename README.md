@@ -828,7 +828,83 @@ DRY とか テストしやすい実装をする方法とか、そういった思
 
 ## Step3.2 Conditions と AWS::NoValue を活用して制御しよう
 
-TBD
+プログラム言語なら条件分岐で実装したくなるようなものを、CloudFormationでもやりたくなる時があります。
+例えば「Production環境の時はこのリソースを作る」や「Auroraの`SnapshotIdentifier`が指定されていたら`MasterUsername`と`MasterUserPassword`」は無視する、といった具体です。
+そんな時は `Conditions` や `AWS::NoValue` の出番です。
+
+### Conditions
+
+`Conditions` [^1] は CloudFormation のかなり初期の頃 [^1] から使うことができた機能です。
+プログラミングに例えるなら、条件式の結果を保持する変数を定義しているようなものです。
+
+```yaml
+Conditions:
+  IsProduction: !Equals [ !Ref Environment, "production" ]
+```
+
+と書けば、それは `IsProduction = (Environment == "")` といった処理となります。
+重要なのは条件式で使うParameter (今回の例だと `Environment`) を定義しておく必要がある点です。つまり、 `Conditions` は `Parameters` で定義したパラメータを使用することが前提となります。
+
+先程例えたとおり、`Conditions` は変数を保持するだけなので、他の箇所で使わなければ無駄になります。
+`Conditions` で定義した変数の使い方は 2種類あります。
+
+- `Resources` の `Conditions` パラメータで使う
+- 条件関数 `!If` の第一引数で使う
+
+[^1]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html
+[^1]: リリース履歴によれば、少なくとも2013年11月には存在していたようです
+
+#### `Resources` の `Conditions` パラメータで使う
+
+これは、条件によってリソースを作る・作らないを制御したい時に活用します。
+例えば、productionの時だけS3 Bucketを作る場合は次のように、S3BucketのResourceに`Conditions`で`IsProduction`を指定します。
+
+```yaml
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+      - production
+      - develop
+
+Conditions:
+  IsProduction: !Equals [ !Ref Environment, "production" ]
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Conditions: IsProduction # ココ！
+```
+
+#### 条件関数 `!If` の第一引数で使う
+
+こちらは、リソースを作るのは決まってるけど、プロパティの有無は条件によって変えたい場合に活用します。
+例えば、productionの時だけS3のLifeCycleを有効にしたい場合は、次のような使い方になります。
+
+```yaml
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+      - production
+      - develop
+
+Conditions:
+  IsProduction: !Equals [ !Ref Environment, "production" ]
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Status: !If [ IsProduction, Enabled, Disabled ] # ココ！
+            ExpirationInDays: 1
+```
+
+`!If` が三項演算子っぽい指定をすると思うと分かりやすいでしょう。
+
+### AWS::NoValue
 
 ## Step3.3 CloudFormation cross stack reference を活用しよう
 
