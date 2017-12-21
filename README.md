@@ -37,7 +37,7 @@
 中には、CloudFormationの作成に試行錯誤中の方や、Stackの管理で困っている方、あるいは CloudFormation を止めたくてたまらないという方もいることでしょう。
 AWS CloudFormationは巨大なツールです。今日明日で使い方を身につけることは難しく、かりにマスターしたとしても、テンプレートファイルを読んだだけでリソース構成を全て理解できるなどという日は永遠に訪れないでしょう。
 それなのに、なぜ CloudFormation が必要なのでしょうか。
-一つの答えは、世の中にある別のツールが持っています。AWS ElasticBeanstalk を使ったことはあるでしょうか？ もしくは awsecscli を使って ECS クラスターを作ったことはあるでしょうか？ Serverless コマンドを触ったことは？ TBD は？
+一つの答えは、世の中にある別のツールが持っています。AWS ElasticBeanstalk を使ったことはあるでしょうか？ もしくは awsecscli を使って ECS クラスターを作ったことはあるでしょうか？ Serverless コマンドを触ったことは？
 これらのツールは内部でCloudFormationを活用しています。AWSのリソースを必要なだけ作成し・更新し・管理をまとめて行うには CloudFormation はうってつけです。
 
 では私たちが私たちのためにCloudFormationを利用する必要はあるのでしょうか。
@@ -49,7 +49,8 @@ AWS CloudFormationは巨大なツールです。今日明日で使い方を身�
 
 # Step1. CloudFormation Template を書こう
 
-TBD
+CloudFormation は Template ファイルを書かなければ何も始まりません。
+書くにあたってのオススメを説明しましょう。
 
 ## Step1.1 Yamlで書こう
 
