@@ -951,9 +951,16 @@ Resources:
         - !Ref RDSInstanceMasterUsername # UseSnapshotIdentifier == false の時は RDSInstanceMasterUsername パラメータを使用する
 ```
 
-## Step3.3 CloudFormation cross stack reference を活用しよう
+## Step3.3 CloudFormation Cross Stack Reference を活用しよう
 
-TBD
+[AWS CloudFormation Cross Stack Reference](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/walkthrough-crossstackref.html) という仕組みがあります。
+これは、Stack間の依存関係を明確にできる仕組みで、Stackの更新・削除を安心して行うためにもぜひ活用しましょう。
+
+例えば、 `VPC Subnet` を構築する Stack と 構築した `VPC Subnet` を利用して `EC2` を立てる Stack があるとして、`EC2` が動いているのに `VPC Subnet` が削除されると困るわけです。実際には、削除しようとしたタイミングで **EC2で利用中だから消せないよ** とエラーになるので問題になることはないですが、 Cross Stack Reference を使うと `VPC Subnet` を削除し得る変更を加えようとした時点で **このVPC Subnetに依存している他のStackがあるから更新できないよ** と教えてくれるのです。
+問題の早期発見ほど効率的なものはありませんね。
+
+ただし、言い換えれば、運用上問題ないことが分かっているけど、 Cross Stack Reference の制約のせいで Stack が更新できない、という状態に陥りやすいです。
+**Stackの依存関係が一直線になること** を守っていれば、そうそう問題にはならないと思いますし、更新ができずに問題なるということは Template の分け方や作り方に問題があるというサインです。
 
 # 参考
 
