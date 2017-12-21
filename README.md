@@ -672,8 +672,6 @@ aws cloudformation describe-change-set \
   --cli-input-json "file://${input_json}" # input_json に stack名も書いているので --stack-name オプションは不要
 ```
 
-TBD
-
 #### Change Sets を実行する & Change Sets を削除する
 
 Change Sets を実行する、すなわち Stack を更新するコマンドは次のようなものです。
