@@ -297,6 +297,10 @@ Resources:
 
 少し蛇足的な内容ですが `!Ref InstanceType` は `Ref: InstanceType` と書いても問題ありません。しかし `!Ref` とすればYamlのタグ機能を使っているため、エディターによってはハイライトが付くようになります。`Ref:` だとYamlのキーとしてのハイライトとなり、他のキーに埋もれてしまいますが、 `!Ref` ならAWSの関数を使っているとすぐに分かるので `!Ref` をおすすめします。
 
+![image.png](https://qiita-image-store.s3.amazonaws.com/0/27201/a3143dfb-f99c-4cc2-2d6d-7e63165b7f9f.png)
+
+例えば私の vim では、こんな風にハイライトが付きます。
+
 ### 疑似パラメータは必ず使おう
 
 たまに、疑似パラメータを知らず `MY_APP_AWS_REGION` などと自前の Parameter を用意してしまうケースを見かけますが、 `!Ref AWS::Region` とすれば一発なので不要です。同様に AWSアカウントId は `AWS::AccountId` が持っていますし、Stack名だって `AWS::StackName` で取得できます。
