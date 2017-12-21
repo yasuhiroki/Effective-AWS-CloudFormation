@@ -902,9 +902,41 @@ Resources:
             ExpirationInDays: 1
 ```
 
-`!If` が三項演算子っぽい指定をすると思うと分かりやすいでしょう。
+`!If` が三項演算子っぽい指定をすると思えば分かりやすいでしょう。
 
 ### AWS::NoValue
+
+`Conditions` と `!If` だけでは、AとBどちらの値にするか、という処理しか書けません。Aを指定するか、何も指定しない、という処理が書けないのです。
+CloudFormationでは、特定の条件の時は指定してはならないパラメータがいくつか存在します。例えば `RDS` の `MasterUsername` は `SnapshotIdentifier` が指定されていたら使ってはならない、とドキュメントに書かれています。 `null` を指定してもダメで、未定義な状態にしておく必要があるのです。
+
+そこで `AWS::NoValue` という疑似パラメータを使います。
+このパラメータと `!If` を組み合わせることで、 `SnapshotIdentifier` が指定されていたら `MasterUesrname` は定義しない、とすることができます。
+
+```yaml
+Parameters:
+  RDSSnapshotIdentifier:
+    Type: String
+  RDSInstanceMasterUsername:
+    Type: String
+
+Conditions:
+  # UseSnapshotIdentifier = (RDSSnapshotIdentifier != "")
+  UseSnapshotIdentifier: !Not [ !Equals [ !Ref RDSSnapshotIdentifier, "" ] ]
+
+Resources:
+  RDSCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      # 他のいくつかのプロパティは省略
+      SnapshotIdentifier: !If [
+        - UseSnapshotIdentifier
+        - !Ref RDSSnapshotIdentifier # UseSnapshotIdentifier == true の時は RDSSnapshotIdentifier パラメータを使用する
+        - !Ref AWS::NoValue          # UseSnapshotIdentifier == false の時は SnapshotIdentifier プロパティ自体を未定義にする
+      MasterUsername: !If
+        - UseSnapshotIdentifier
+        - !Ref AWS::NoValue              # UseSnapshotIdentifier == true の時は MasterUsername プロパティ自体を未定義にする
+        - !Ref RDSInstanceMasterUsername # UseSnapshotIdentifier == false の時は RDSInstanceMasterUsername パラメータを使用する
+```
 
 ## Step3.3 CloudFormation cross stack reference を活用しよう
 
