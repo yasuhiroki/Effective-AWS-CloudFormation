@@ -773,17 +773,35 @@ CI/CD とは言いましたが、具体的に何をするのかは述べてい�
 事前にChangeSetsを作って、更新内容を確認さえしていれば、あとはレビューで良しと見なしてどんどんStackに反映させてしまいます。
 `awspec` を使って Stack 作成後にAWSのリソースをチェックするかどうかは悩みます。SecurityGroup や BucketPolicy といった、セキュリティ的に気をつけたい部分はテストしたいところですが、他の内容は CloudFormation Template 自体をしっかりレビューしていれば十分だと思います。
 
-### CI用の環境を用意しておく
-
-TBD
-
 ### GitHub + CircleCI の例
 
-TBD
+実際に業務で使用している CircleCIの config.yml を一部抜粋します。
+やっていることは `aws cloudformation validate-template` しているだけです。
 
-### CI用のStackを使って
-
-TBD
+```yaml:.circleci/config.yml
+version: 2
+jobs:
+  build:
+    working_directory: ~/app
+    docker:
+      - image: circleci/python:3
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps1-{{ .Branch }}
+      - run: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install awscli
+      - save_cache:
+          key: deps1-{{ .Branch }}
+          paths:
+            - "venv"
+      - run: |
+          . venv/bin/activate
+          # 指定したディレクトリ以下のtemplateファイルを順次 aws cloudformation validate-template するスクリプトを実行
+          bash ./cloudformation/tool/validation.sh -r ap-northeast-1 ./cloudformation/
+```
 
 # Step3 CloudFormation Template の再利用性を意識しよう
 
