@@ -962,6 +962,11 @@ Resources:
 ただし、言い換えれば、運用上問題ないことが分かっているけど、 Cross Stack Reference の制約のせいで Stack が更新できない、という状態に陥りやすいです。
 **Stackの依存関係が一直線になること** を守っていれば、そうそう問題にはならないと思いますし、更新ができずに問題なるということは Template の分け方や作り方に問題があるというサインです。
 
+# まとめ
+
+CloudFormationは他のサービスに比べると地味なツールで、機能の追加もまた地味なものが多いツールでもあります。
+この記事もまた地味な感じになりましたが、誰かの役に立てていれば幸いです。
+
 # 参考
 
 - [AWSマイスターシリーズ AWS CloudFormation](https://www.slideshare.net/AmazonWebServicesJapan/aws-aws-cloudformation)
