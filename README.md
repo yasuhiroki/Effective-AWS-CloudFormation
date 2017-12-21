@@ -351,16 +351,6 @@ AWS固有のパラメーター型[^1]が使える場合は必ず使いましょ�
 
 AWS 固有のパラメーター型が使えない場合、基本的にはこの `AllowedPattern` を使うことになります。
 パラメーターが取りうる文字列を正規表現で定義します。
-正規表現が得意ではない方のために、よく使いそうなものをリストアップしておきました。
-なお `AllowedPattern` を使う時は同時に `ConstraintDescription` を使うと親切です。
-
-
-TBD: AllowedPattern
-
-```yaml
-AllowedPattern: 
-ConstraintDescription: 
-```
 
 ## Step1.5 Templateファイルをテストしよう
 
