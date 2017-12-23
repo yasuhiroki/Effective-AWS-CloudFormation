@@ -701,7 +701,7 @@ aws cloudformation wait stack-update-complete --stack-name "${stack_name}" || {
 }
 ```
 
-### 確認済みですぐに適用したい場合は deloy を使おう
+### 確認済みですぐに適用したい場合は deploy を使おう
 
 何が更新されるかは分かっているのですぐに反映させたい、という時に使うことができるコマンドは2種類あります。
 
@@ -950,7 +950,7 @@ Resources:
     Type: 'AWS::RDS::DBCluster'
     Properties:
       # 他のいくつかのプロパティは省略
-      SnapshotIdentifier: !If [
+      SnapshotIdentifier: !If
         - UseSnapshotIdentifier
         - !Ref RDSSnapshotIdentifier # UseSnapshotIdentifier == true の時は RDSSnapshotIdentifier パラメータを使用する
         - !Ref AWS::NoValue          # UseSnapshotIdentifier == false の時は SnapshotIdentifier プロパティ自体を未定義にする
