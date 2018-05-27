@@ -358,7 +358,24 @@ AWS固有のパラメーター型[^11]が使える場合は必ず使いましょ
 AWS 固有のパラメーター型が使えない場合、基本的にはこの `AllowedPattern` を使うことになります。
 パラメーターが取りうる文字列を正規表現で定義します。
 
-## Step1.5 Templateファイルをテストしよう
+## Step1.5 Rulesを使ってより厳密な値チェックをしよう
+
+CloudFormation のドキュメントに載っていない機能として `Rules` というものがあります。[^1]
+
+[^1]: 2018/05/27時点では、なぜか AWS Service Catalog の[ドキュメント](https://docs.aws.amazon.com/servicecatalog/latest/adminguide/reference-template_constraint_rules.html)に載っています
+
+Rulesを使うと「もし `Environment` が `production` だったら EC2 の InstanceType は `m4.large` しか指定できない」と、あるパラメータが他のパラメータによって取りうる値が決まっていることを表現できます。
+
+```yaml
+Rules:
+  IfProduction:
+    RuleCondition: !Equals [ !Ref Environment, "production" ]
+    Assertions:
+      - Assert: !Equals [ !Ref InstanceType, "m4.large" ]
+        AssertDescription: "Production env should use m4.large"
+```
+
+## Step1.6 Templateファイルをテストしよう
 
 私は、CloudFormationは学習コストが高い仕組みだと思います。独自の記法・仕組みが多く、それらを把握するにはドキュメントを読みながら試すしかありません。しかし実際にTemplateファイルを書いて、試して、失敗したStackを削除して、という作業を繰り返すのは手間ですし、精神的にも辛い作業です。
 特に単純なケアレスミスは、Stackを作る前に気付きたいものです。
