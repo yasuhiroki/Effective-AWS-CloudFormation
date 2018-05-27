@@ -11,9 +11,6 @@
 - [AWS CloudFormation の組み込み関数](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html)
 - [AWS CloudFormation Change Sets](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-changesets.html)
 - [AWS CloudFormation Cross Stack Reference](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/walkthrough-crossstackref.html)
-- [AWS CloudFormation カスタムリソース](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/template-custom-resources.html)
-	- ただし、積極的な活用はせず、あくまで手段の1つとして触れています
-	- 詳しくは後述しますが、CloudFormationで動的なコードを走らせるのはテスト・メンテが辛くなると考えています
 
 ## この記事で触れないこと
 
@@ -23,6 +20,7 @@
 	- `cfn-init` とか `cfn-signal` など
 	- 私にはベストプラクティスを説明できる自信がないので省いています[^1]
 - [CloudFormation StackSets](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html)
+- [AWS CloudFormation カスタムリソース](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/template-custom-resources.html)
 - CloudFormationを操作する権限管理
   - 例えば、CloudFormationの操作はしても良いけど、EC2やS3などには直接触ってほしくない場合のIAM設定方法
   - IAM設計が絡むと本記事では扱いきれないので触れません
@@ -30,22 +28,6 @@
   - [Terraform](https://www.terraform.io/) や `awscli` 以外のCLIツールには触れません
 
 [^1]: ヘルパースクリプトはなるべく使わない方が良いと考えています。数年前ならともかく、今なら代替手段があるはずです。
-
-# 前章. CloudFormation を使う必要はあるのか
-
-この記事を読もうと思った方は、少なくとも AWS CloudFormation という仕組みの存在を知っていることでしょう。
-中には、CloudFormationの作成に試行錯誤中の方や、Stackの管理で困っている方、あるいは CloudFormation を止めたくてたまらないという方もいることでしょう。
-AWS CloudFormationは巨大なツールです。今日明日で使い方を身につけることは難しく、かりにマスターしたとしても、テンプレートファイルを読んだだけでリソース構成を全て理解できるなどという日は永遠に訪れないでしょう。
-それなのに、なぜ CloudFormation が必要なのでしょうか。
-一つの答えは、世の中にある別のツールが持っています。AWS ElasticBeanstalk を使ったことはあるでしょうか？ もしくは awsecscli を使って ECS クラスターを作ったことはあるでしょうか？ Serverless コマンドを触ったことは？
-これらのツールは内部でCloudFormationを活用しています。AWSのリソースを必要なだけ作成し・更新し・管理をまとめて行うには CloudFormation はうってつけです。
-
-では私たちが私たちのためにCloudFormationを利用する必要はあるのでしょうか。
-私の答えは「必要だ。だが昔ほどではない」です。
-例えば AWS Lambda の管理のために CloudFormation を使用する必要はないでしょう。ServerlessやApexなど便利なツールが揃っています。こちらを活用したほうが圧倒的に管理が簡単です。
-しかし VPC の構築やIAM設計やRDSの設定管理などは、CloudFormation を使った方が良いでしょう。どのSubnetとSubnetが接続できるのか、IAM Policyがどのような内容になっているのか、RDSの設定を何にしているのか、といった情報を知りたくなる度にWebコンソール画面で探すよりも、たった一つのCloudFormation Stackを確認すれば済む、という文化の方が効率的なのは明らかです。
-
-あらゆるプログラミング言語や開発ツールがそうであるように、CloudFormationを使うタイミングもまた適材適所となるのです。
 
 # Step1. CloudFormation Template を書こう
 
@@ -181,15 +163,30 @@ Fn::Sub: "myapp-${AWS::Region}"
 
 AWS CloudFormation Designer は 2015/10 から使えるようになった機能です。CloudFormation の Template の内容を理解するために、これほど便利な機能はありません。ぜひ活用しましょう。
 実際に、私はこの機能を愛用しています。CloudFormation Designer がリリースされるまで、このTemplateが作るAWSリソース群の設計図を出力できたら良いのに、と何度思ったことか。
+
+### CloudFormation Designer で Template ファイルを作る
+
+CloudFormation でできることは、言ってしまえば、AWS のリソースを作ることと、作ったリソースとリソースを関連付けることです。特に、リソースとリソースを関連付けていくと、Templateファイルは複雑化し、どのリソースがどこに依存しているのか追いかけるのが大変です。
+
+しかし CloudFormation Designer を使えば Template ファイル内で定義したリソースの関係がGUIで確認できるようになります。
+
+![Kobito.hzWrYy.png](https://qiita-image-store.s3.amazonaws.com/0/27201/b46c5a6d-275b-a4b2-1902-8146e4737b59.png "Kobito.hzWrYy.png")
+
+
+AWS CloudFormation Designer は既存のTemplateを理解するためだけでなく、新しいTemplateファイルを作成する時にも使えます。CloudFormationに慣れていない方は、いきなりテキストエディターを開かず、AWS CloudFormation Designer を使ってTemplateファイルを作ったほうが楽かもしれません。AWS CloudFormation Designer は補完機能も備えているので、それなりに快適な作業ができます。[^7]
+
+[^7]: 使い方は https://dev.classmethod.jp/cloud/aws/cfndesigner/ が参考になります
+
+### Metadata は消してしまおう
+
+一方で AWS CloudFormation Designer を使うと、 `Metadata` という情報が Template ファイルに追加されてしまいます。これは、Designer上のリソースの表示位置を保持していて、ちょっと位置を変えただけで `Metadata` が変化するため、バージョン管理ツールを使っていると差分として出てきてしまいます。「この差分は何だっけ...ああ Metadata か」という無駄な作業はしたくありません。
+そのため私は Templateの構成理解のために Designer を使い、Templateファイルの作成や修正自体は手慣れたツールで行う、という方針にしています。
+
 CloudFormation でできることは、言ってしまえば、AWS のリソースを作ることと、作ったリソースとリソースを関連付けることです。特に、リソースとリソースを関連付けていくと、Templateファイルは複雑化し、どのリソースがどこに依存しているのか追いかけるのが大変です。しかし CloudFormation Designer を使えば Template ファイル内で定義したリソースの関係がGUIで確認できるようになります。
-
-AWS CloudFormation Designer は既存のTemplateを理解するためだけでなく、新しいTemplateファイルを作成する時にも使えます。CloudFormationに慣れていない方は、いきなりテキストエディターを開かず、AWS CloudFormation Designer を使ってTemplateファイルを作ったほうが楽かもしれません。AWS CloudFormation Designer は補完機能も備えているので、それなりに快適な作業ができます。
-
-一方で AWS CloudFormation Designer を使うと、 `Metadata` という情報が Template ファイルに追加されてしまいます。これは、Designer上のリソースの表示位置を保持していて、ちょっと位置を変えただけで `Metadata` が変化するため、バージョン管理ツールを使っていると差分として出てきてしまいます。「この差分は何だっけ...ああ Metadata か」という無駄な作業はしたくありません。その為私は、Templateの構成理解のために Designer を使いTemplateファイルの作成や修正自体は手慣れたツールで行う、という方針にしています。
 
 ## Step1.3 CloudFormation の記法を活用しよう
 
-Yamlの短縮形構文でも述べたように、 CloudFormationには固有のパラメータや記法が存在します。これらを活用することで、Yamlという静的なファイルでありながら、ある程度のプログラマブルな処理を記述することができます。詳しくは公式ドキュメントを参照頂くとして、私がどのように活用しているかご紹介します。
+Yamlの短縮形構文でも述べたように、 CloudFormationには固有のパラメータや記法が存在します。これらを活用することで、ある程度はプログラマブルな処理を記述することができます。詳しくは公式ドキュメントを参照頂くとして、私がどのように活用しているか紹介します。
 
 ### 組み込み関数と疑似パラメーターを活用しよう
 
@@ -197,10 +194,10 @@ Yamlの短縮形構文でも述べたように、 CloudFormationには固有の�
 
 #### 組み込み関数
 
-組み込み関数は現時点で11種類あります。[^4] 条件関数にはさらに何種類かあるので、実際は11種類より多いです。
+組み込み関数は現時点で11種類あります。[^8] 条件関数にはさらに何種類かあるので、実際は11種類より多いです。
 これらの関数をプログラマーの視点で分類してみます。
 
-[^4]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html
+[^8]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference.html
 
 - 条件分岐
 - 文字列操作系
@@ -233,23 +230,21 @@ Yamlの短縮形構文でも述べたように、 CloudFormationには固有の�
       指定したRegionが持つAvailabilityZoneの配列を取得する
     - `Fn::ImportValue`  
       Cross-stack referenceにより別StackでExportした値を取得する  
-      詳しくは後述 #TODO: リンク
     - `Ref`  
       `Parameters` 及び `Resources` で定義した値を取得する際に使用する  
       特に `Resources` で定義した値を指定した場合は、どのような値を取得するかはリソースによって変わる  
-      詳しくは後述 #TODO: リンク  
 
 どれも便利な関数です。特に `Ref` は使わずにいる方が難しい関数でしょう。
-また、`!Sub` は比較的新しい関数[^6]なので古い記事では見つからないかもしれません。しかし、かなり便利な関数です。ぜひ活用しましょう。
+また、`!Sub` は比較的新しい関数[^9]なので古い記事では見つからないかもしれません。しかし、かなり便利な関数です。ぜひ活用しましょう。
 
-[^6]: 2016/09に追加された関数です。参考) https://aws.amazon.com/jp/blogs/aws/aws-cloudformation-update-yaml-cross-stack-references-simplified-substitution/
+[^9]: 2016/09に追加された関数です。参考) https://aws.amazon.com/jp/blogs/aws/aws-cloudformation-update-yaml-cross-stack-references-simplified-substitution/
 
 #### 疑似パラメータ
 
-疑似パラメータ[^5] は、たとえるならCloudFormationが持つグローバル変数のようなものです。どのCloudFormationでも、特に何の前準備も無しに参照できるパラメータです。  
+疑似パラメータ[^10] は、たとえるならCloudFormationが持つグローバル変数のようなものです。どのCloudFormationでも、特に何の前準備も無しに参照できるパラメータです。  
 現時点では次の5種類が使えます。
 
-[^5]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html
+[^10]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html
 
 - `AWS::AccountId`
   - AWSアカウントIdを取得する
@@ -338,7 +333,7 @@ Resources:
       RoleName: !Sub "${AWS::StackName}-ops-iam-role"
 ```
 
-`!Sub "arn:aws:iam::${AWS::AccountId}:policy/AmazonEC2FullAccess-201708310220-kiyo"` や `!Sub "${AWS::StackName}-ops-iam-role"` のように、 `!Sub` と組み合わせることで簡単に文字列を定義することができています。`!Sub` は疑似パラメータも参照できるのです。
+`!Sub "arn:aws:iam::${AWS::AccountId}:policy/AmazonEC2FullAccess-201708310220-yasuhiroki"` や `!Sub "${AWS::StackName}-ops-iam-role"` のように、 `!Sub` と組み合わせることで簡単に文字列を定義することができています。`!Sub` は疑似パラメータも参照できるのです。
 
 ## Step1.4 親切なパラメータの定義をしよう
 
@@ -353,10 +348,10 @@ CloudFormation のパラメータはできるだけ使う人のことを考え�
 
 ### AWS 固有のパラメーター型
 
-AWS固有のパラメーター型[^1]が使える場合は必ず使いましょう。非常に有効です。
+AWS固有のパラメーター型[^11]が使える場合は必ず使いましょう。非常に有効です。
 例えば `AWS::EC2::Instance::Id` という型を使うと、InstanceId しか指定できないパラメーターを定義できます。強力なのは、Stackを作ろうとしているAWSアカウント上に存在していないIdを指定すると、即座にエラーとなる点です。利用者はすぐに「あ、このId間違ってた」と気付くことができます。
 
-[^1]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html の後半を参照
+[^11]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html の後半を参照
 
 ### AllowedPattern
 
@@ -367,8 +362,9 @@ AWS 固有のパラメーター型が使えない場合、基本的にはこの 
 
 私は、CloudFormationは学習コストが高い仕組みだと思います。独自の記法・仕組みが多く、それらを把握するにはドキュメントを読みながら試すしかありません。しかし実際にTemplateファイルを書いて、試して、失敗したStackを削除して、という作業を繰り返すのは手間ですし、精神的にも辛い作業です。
 特に単純なケアレスミスは、Stackを作る前に気付きたいものです。
-「何で失敗したんだろう」
-「あ、タイプミスか...」
+
+「何で失敗したんだろう。あ、タイプミスか...」
+
 そんな虚無感を味合う前に、次のようなツールを使ってTemplateをテストしましょう。
 
 ### aws cloudformation validate-template を実行しよう
@@ -401,8 +397,10 @@ $ aws cloudformation validate-template --template-body file://./step5/invalid.te
 An error occurred (ValidationError) when calling the ValidateTemplate operation: Template format error: [/Resources/S3Bucket] Every Resources object must contain a Type member.
 ```
 
-実はこの validation は Stack を作成する時にも事前に自動で実行されるので、わざわざ実行しなくても良いと思うかもしれません。
+実はこの validation は Stack を作成する時にも事前に自動で実行されるので、わざわざ別に手動で実行しなくても良いと思うかもしれません。
 しかし、コマンドを実行してすぐにエラーを教えてくれるのと、Stack名やパラメータを入力してからよし実行だ、としてからエラーとなるのとでは、徒労感が全く違うでしょう。
+
+### aws cloudformation validate-template は万能ではない
 
 ただし、このツールには大きな欠点があります。
 次のTemplateファイルはミスがあり、Stackが作成できません。
@@ -429,7 +427,7 @@ $ aws cloudformation validate-template --template-body file://./step5/invalid.te
 }
 ```
 
-`aws cloudformation validate-template` は力不足で CloudFormation Template の Format が正しいかどうかの検証はしてくれるのですが、必須ではないパラメータやその値が正しいかどうかはチェックしてくれないのです。
+`aws cloudformation validate-template` は力不足で CloudFormation Template の Format が正しいかどうかの検証はしてくれるのですが、必須ではないパラメータやその値はチェックしてくれないのです。
 何がミスなのかは次の章で説明しましょう。
 
 ### cfn-lint を実行しよう
@@ -456,10 +454,27 @@ Template invalid!
 ```
 
 何やらメッセージが出てきました。
-ミスの内容は `Rules` とすべきところを `Rule` と書いていた、なのですが、 `cfn-lint` は見事にそれを `Rules` が無い・`Rule` なんてプロパティは存在しない、と指摘してくれています。ありがたいですね。
+`cfn-lint` は `Rules` が無い・`Rule` なんてプロパティは存在しない、と指摘しています。
+実は、先程の Template ファイルが間違っていた部分は、`Rules` とすべきところを `Rule` と書いていたことなのです。 
 
 さらに `cfn-lint` はおまけで `cfn-lint docs` というコマンドを用意しています。
 例えば `cfn-lint docs AWS::S3::Bucket.LifecycleConfiguration` と実行すると、ブラウザでS3 Bucket LifecycleConfiguration のCloudFormationに関するドキュメントを開いてくれます。いちいち検索しなくて済むので便利です。
+
+# 前章. CloudFormation を使う必要はあるのか
+
+この記事を読もうと思った方は、少なくとも AWS CloudFormation という仕組みの存在を知っていることでしょう。
+中には、CloudFormationの作成に試行錯誤中の方や、Stackの管理で困っている方、あるいは CloudFormation を止めたくてたまらないという方もいることでしょう。
+AWS CloudFormationは巨大なツールです。今日明日で使い方を身につけることは難しく、かりにマスターしたとしても、テンプレートファイルを読んだだけでリソース構成を全て理解できるなどという日は永遠に訪れないでしょう。
+それなのに、なぜ CloudFormation が必要なのでしょうか。
+一つの答えは、世の中にある別のツールが持っています。AWS ElasticBeanstalk を使ったことはあるでしょうか？ もしくは awsecscli を使って ECS クラスターを作ったことはあるでしょうか？ Serverless コマンドを触ったことは？
+これらのツールは内部でCloudFormationを活用しています。AWSのリソースを必要なだけ作成し・更新し・管理をまとめて行うには CloudFormation はうってつけです。
+
+では私たちが私たちのためにCloudFormationを利用する必要はあるのでしょうか。
+私の答えは「必要だ。だが昔ほどではない」です。
+例えば AWS Lambda の管理のために CloudFormation を使用する必要はないでしょう。ServerlessやApexなど便利なツールが揃っています。こちらを活用したほうが圧倒的に管理が簡単です。
+しかし VPC の構築やIAM設計やRDSの設定管理などは、CloudFormation を使った方が良いでしょう。どのSubnetとSubnetが接続できるのか、IAM Policyがどのような内容になっているのか、RDSの設定を何にしているのか、といった情報を知りたくなる度にWebコンソール画面で探すよりも、たった一つのCloudFormation Stackを確認すれば済む、という文化の方が効率的なのは明らかです。
+
+あらゆるプログラミング言語や開発ツールがそうであるように、CloudFormationを使うタイミングもまた適材適所となるのです。
 
 # Step2 CloudFormation Stack を管理しよう
 
@@ -480,16 +495,16 @@ CloudFormation Stack の作成・更新・削除をする方法はいくつか�
 1. `awscli` を使ってCLIで作業する
 1. 外部サービスを利用する
 
-ここでは `awscli` に絞って解説します。[^1]
+ここでは `awscli` に絞って解説します。[^12]
 
-[^1]: 執筆時の `awscli` の version は `aws-cli/1.11.162` です
+[^12]: 執筆時の `awscli` の version は `aws-cli/1.11.162` です
 
 ### 最初はWebコンソールで流れをつかもう
 
 CloudFormationを触り始めた頃はWebコンソールで作業をしましょう。
-この時、できれば英語表記を使うことをおすすめします。`awscli` で使用するコマンドやオプションは英語なので、その英語が何を指すのか少しでも理解するためです。[^1]
+この時、できれば英語表記を使うことをおすすめします。`awscli` で使用するコマンドやオプションは英語なので、その英語が何を指すのか少しでも理解するためです。[^13]
 
-[^1]: 余談ですが、私はWebコンソールを常に英語で使用しています。`awscli` をベースにしているため、日本語だとかえって何の機能か分からないことが多いのです。
+[^13]: 余談ですが、私はWebコンソールを常に英語で使用しています。`awscli` をベースにしているため、日本語だとかえって何の機能か分からないことが多いのです。
 
 ここでWebコンソールの使い方の解説は省略します。WebコンソールのUIは度々変わるので、キャプチャ画像にあまり意味はないと思います。
 代わりに、どういった機能を触り、把握しておけば良いかリストアップしておきます。
@@ -505,16 +520,16 @@ CloudFormationを触り始めた頃はWebコンソールで作業をしましょ
 ### CLIで再現性の高い作業ができるようになろう
 
 CloudFormationの流れを掴めたら次は CLI を使っていきましょう。
-言わずもがなですが、Webページでの作業は反復作業に向いていません。かといって自前でプログラムを作るのは費用対効果として見合わない場合もあるでしょう。[^1]
-そこで `awscli` です。すでにご存知かもしれませんが `awscli` はAWSの各種サービス用APIをラップしてCLIツールに仕上げたもので、AWSのWebコンソールで行っていることは、ほぼ全て `awscli` で代替可能です。中にはWebコンソールでは処理できないものすらあるので、AWSを運用するなら必須と言っても良いツールでしょう。
+言わずもがなですが、Webコンソールでの作業は反復作業に向いていません。かといって自前でプログラムを作るのは費用対効果として見合わない場合もあるでしょう。[^14]
+そこで `awscli` です。すでにご存知かもしれませんが `awscli` はAWSの各種サービス用APIをラップしてCLIツールに仕上げたもので、AWSのWebコンソールで行っていることは、ほぼ全て `awscli` で代替可能です。むしろ `awscli` でできることがWebコンソールではできないことすらあるので、AWSを運用するなら必須と言っても良いツールでしょう。
 
-[^1]: ちょっとしたツールのつもりでも継続的なメンテと拡張性を...と考えると、それなりに工数がかかるものです
+[^14]: ちょっとしたツールのつもりでも継続的なメンテと拡張性を...と考えると、それなりに工数がかかるものです
 
-`awscli` のインストール方法は割愛します。[^1]
+`awscli` のインストール方法は割愛します。[^15]
 `aws cloudformation help` を実行すると使用できるコマンドが分かります。執筆時時点では 44 のコマンドが使えるようです。
 いきなり44つ全てのコマンドを把握して使いこなすのは時間がかかるので、私がよく使用するコマンドをリストアップしておきます。
 
-[^1]: awscliのインストール方法は http://docs.aws.amazon.com/ja_jp/cli/latest/userguide/installing.html を参考
+[^15]: awscliのインストール方法は http://docs.aws.amazon.com/ja_jp/cli/latest/userguide/installing.html を参考
 
 - create-stack
   - stack を作成する
@@ -591,20 +606,17 @@ $ aws cloudformation create-stack --cli-input-json sample.json
 
 作った CloudFormation Stack は更新することができます。
 Stack作成時に使った Template
-CloudFormation の Stack 更新は Change Sets[^1] という仕組みを使います。
-もはや、Change Sets を使わずにStackの更新をしようなんて今では考えられません。[^1]
+CloudFormation の Stack 更新は Change Sets[^16] という仕組みを使います。
+もはや、Change Sets を使わずにStackの更新をしようなんて今では考えられません。[^17]
 
-[^1]: 日本語では変更セット、と表現されています
-[^1]: この仕組みが入る前まで Stack の更新の前にどうやって確認していたか、もはや記憶にありません
+[^16]: 日本語では変更セット、と表現されています
+[^17]: この仕組みが入る前まで Stack の更新の前にどうやって確認していたか、もはや記憶にありません
 
 ### Change Sets を知ろう
 
 Stackを更新したい時、最も気になるのは「更新して大丈夫なのか」という不安です。ひょっとすると、ちょっとした変更のつもりがEC2の再構築が実行されてしまいアラートが飛ぶ、想定外のリソースが削除されてしまってデータが飛ぶ、といった経験をしたことがあるせいかもしれません。
 こうした不安を払拭するには、この Stack 更新 で何がどうなるのかを知る必要があります。
 そして、そのための仕組みが Change Sets です。
-Change Sets は、Stack 更新によって使用する Template ファイル
-
-では、Change Sets の使い方を見ていきましょう。
 
 ### Change Sets を使おう
 
@@ -728,8 +740,6 @@ aws cloudformation deploy \
 では、`update-stack` はもう使われることのないコマンドなのかというと、そうではありません。
 Stack で管理されているリソースの更新は `deploy` を使う方が好ましいですが、Stack 自体の設定、例えば Stack Policy や Rollback Policy などは `update-stack` を使う必要があります。
 `update-stack` が受け持っていた多くの役割のうち、Stack内で管理するリソースの追加・更新・削除は `deploy` に委譲されたものとして考えると良いでしょう。
-
-TODO: 動作確認する
 
 ## Step2.3 通知を出そう
 
@@ -856,7 +866,7 @@ DRY とか テストしやすい実装をする方法とか、そういった思
 
 ### Conditions
 
-`Conditions` [^1] は CloudFormation のかなり初期の頃 [^1] から使うことができた機能です。
+`Conditions` [^18] は CloudFormation のかなり初期の頃 [^19] から使うことができた機能です。
 プログラミングに例えるなら、条件式の結果を保持する変数を定義しているようなものです。
 
 ```yaml
@@ -873,8 +883,8 @@ Conditions:
 - `Resources` の `Conditions` パラメータで使う
 - 条件関数 `!If` の第一引数で使う
 
-[^1]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html
-[^1]: リリース履歴によれば、少なくとも2013年11月には存在していたようです
+[^18]: http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/conditions-section-structure.html
+[^19]: リリース履歴によれば、少なくとも2013年11月には存在していたようです
 
 #### `Resources` の `Conditions` パラメータで使う
 
@@ -987,3 +997,4 @@ CloudFormationは他のサービスに比べると地味なツールで、機能
   - CloudFormationを運用する際のベストプラクティス
 - [CloudFormationのリリース履歴](http://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/ReleaseHistory.html)
 - [AWS公式テンプレートサンプル集](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-sample-templates.html)
+
